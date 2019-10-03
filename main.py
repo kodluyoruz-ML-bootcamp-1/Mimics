@@ -18,14 +18,9 @@ def main():
 
     imgs_w_labels = PreProcessor(data_dir=DATASET_DIR).extract_imgs_with_labels()
     for img_w_label in imgs_w_labels:
-        #landmark_points = land_marker.img_to_landmarks(img_path=img_w_label['path'])
-        landmark_points = land_marker.foo(img_path=img_w_label['path'])
-        print(img_w_label)
-        print(landmark_points)
-        exit('OKK DUDE')
+        landmark_points = land_marker.img_to_landmarks(img_path=img_w_label['path'])
         instance = landmark_points + [img_w_label['label']]
         print(instance)
-    print(imgs_w_labels)
     exit(19)
 
     imgs = []
