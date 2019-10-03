@@ -1,7 +1,6 @@
 from os import listdir, rename, remove
 from shutil import rmtree
 
-
 FILE_SEPARATOR = '/'  # For Linux and MacOS
 LABEL_POSTFIX = '_emotion.txt'
 
@@ -76,15 +75,6 @@ class PreProcessor:
 
     def execute(self):
         for img_ds in self.img_datasets:
-            print(img_ds.path, '-->', img_ds.label)
-
-            # img_ds.regulate_names()
-            # img_ds.remove_except_first_and_last()
-            # img_ds.clear_img_paths_without_label(label_postfix=LABEL_POSTFIX)
-
-
-def foo():
-    img_datasets = ImageDataset.collect_img_datasets(dataset_parent_dir=DATASET_DIR)
-    for ds in img_datasets:
-        print(ds.path,ds.label)
-
+            img_ds.regulate_names()
+            img_ds.remove_except_first_and_last()
+            img_ds.clear_img_paths_without_label(label_postfix=LABEL_POSTFIX)
