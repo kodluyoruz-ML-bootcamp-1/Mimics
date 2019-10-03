@@ -1,6 +1,7 @@
 from os import listdir
 
 import facial_landmarks
+from data_preprocessor import PreProcessor
 
 DEFAULT_PREDICTOR = 'shape_predictor_68_face_landmarks.dat'
 IMAGE_DIR_PATH = './'
@@ -69,5 +70,8 @@ def main():
     exit(95)
 
 
+DATASET_DIR = 'data'
+
 if __name__ == "__main__":
+    # PreProcessor(data_dir=DATASET_DIR).execute()
     main()

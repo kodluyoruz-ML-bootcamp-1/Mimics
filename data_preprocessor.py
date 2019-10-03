@@ -1,7 +1,7 @@
 from os import listdir, rename, remove
 from shutil import rmtree
 
-DATASET_DIR = 'data'
+
 FILE_SEPARATOR = '/'  # For Linux and MacOS
 LABEL_POSTFIX = '_emotion.txt'
 
@@ -59,13 +59,8 @@ class ImageDataset:
             if not any(label_postfix in pic for pic in ls(img_path)):
                 rmtree(img_path)
 
-
-class PreProcessor:
-    def __init__(self, parent_dir):
-        self.img_datasets = self.collect_img_datasets(parent_dir)
-
     @staticmethod
-    def collect_img_datasets(dataset_parent_dir: str) -> [ImageDataset]:
+    def collect_img_datasets(dataset_parent_dir: str) -> ['ImageDataset']:
         img_datasets = []
         for subject in ls(dataset_parent_dir):
             subject_dir = merge_paths(dataset_parent_dir, subject)
@@ -74,36 +69,22 @@ class PreProcessor:
                 img_datasets.append(ds)
         return img_datasets
 
-    def regulate_names(self):
-        return [img_ds.regulate_names() for img_ds in self.img_datasets]
 
-    def remove_except_first_and_last(self):
-        return [img_ds.remove_except_first_and_last() for img_ds in self.img_datasets]
-
-    def clear_img_paths_without_label(self):
-        return [img_ds.clear_img_paths_without_label(label_postfix=LABEL_POSTFIX) for img_ds in self.img_datasets]
+class PreProcessor:
+    def __init__(self, data_dir):
+        self.img_datasets = ImageDataset.collect_img_datasets(data_dir)
 
     def execute(self):
         for img_ds in self.img_datasets:
-            print(img_ds.path, '-->', img_ds.label['name'])
+            print(img_ds.path, '-->', img_ds.label)
 
             # img_ds.regulate_names()
             # img_ds.remove_except_first_and_last()
             # img_ds.clear_img_paths_without_label(label_postfix=LABEL_POSTFIX)
 
-        pass
 
+def foo():
+    img_datasets = ImageDataset.collect_img_datasets(dataset_parent_dir=DATASET_DIR)
+    for ds in img_datasets:
+        print(ds.path,ds.label)
 
-def pre_process():
-    img_datasets = PreProcessor(parent_dir=DATASET_DIR)
-
-    # img_datasets.regulate_names()
-    # img_datasets.remove_except_first_and_last()
-    # img_datasets.clear_img_paths_without_label()
-
-    print('yovv')
-
-
-if __name__ == '__main__':
-    data_preprocessor = PreProcessor(parent_dir=DATASET_DIR)
-    data_preprocessor.execute()
