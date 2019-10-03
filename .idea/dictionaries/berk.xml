@@ -2,7 +2,9 @@
   <dictionary name="berk">
     <words>
       <w>dataset</w>
+      <w>datasets</w>
       <w>imgs</w>
+      <w>preprocess</w>
     </words>
   </dictionary>
 </component>

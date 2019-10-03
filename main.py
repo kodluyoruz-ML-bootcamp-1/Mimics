@@ -1,28 +1,10 @@
 from os import listdir
 
-import facial_landmarks
+from facial_landmarks import LandMarker
+from data_preprocessor import PreProcessor
 
-
-DEFAULT_PREDICTOR = 'shape_predictor_68_face_landmarks.dat'
-IMAGE_DIR_PATH = './'
-IMAGE_EXTENSION = '.png'
-
-
-def get_image_files():
-    return [IMAGE_DIR_PATH + f for f in listdir(IMAGE_DIR_PATH) if f.endswith(IMAGE_EXTENSION)]
-
-
-def get_images_to_labels() -> dict:
-    images_to_labels = {}
-    labels = {'happy', 'sad'}
-    image_files = get_image_files()
-    image_files = []
-    for img in image_files:
-        for label in labels:
-            if label in img:
-                images_to_labels[img] = label
-    # return images_to_labels
-    return {'img.png': 'happy'}
+PREDICTOR_PATH = 'shape_predictor_68_face_landmarks.dat'
+DATASET_DIR = 'data'
 
 
 def shape_to_coordinates(img_shape):
@@ -30,23 +12,24 @@ def shape_to_coordinates(img_shape):
 
 
 def main():
-    images_to_labels = get_images_to_labels()
+    # PreProcessor(data_dir=DATASET_DIR).preprocess()
+
+    land_marker = LandMarker(landmark_predictor_path=PREDICTOR_PATH)
+
+    imgs_w_labels = PreProcessor(data_dir=DATASET_DIR).extract_imgs_with_labels()
+    for img_w_label in imgs_w_labels:
+        landmark_points = land_marker.img_to_landmarks(img_path=img_w_label['path'])
+        instance = landmark_points + [img_w_label['label']]
+        print(instance)
+    print(imgs_w_labels)
+    exit(19)
+
     imgs = []
 
     shape_list = []
     for img_path in images_to_labels.keys():
         imgs.append(img_path)
-        img_shape = facial_landmarks.landmark_img(predictor=DEFAULT_PREDICTOR, img_path=img_path, label='dummy')
-
-        print(img_shape)
-        print(img_shape.ndim)
-        print(type(img_shape))
-        # """
-        exit(22)
-        img_shape_tuple = [(i[0], i[1]) for i in img_shape]
-        shape_list.append(img_shape_tuple)
-        # points_coordinates = shape_to_coordinates(img_shape=img_shape)
-        # print(points_coordinates)
+        landmark_points = img_to_landmarks(predictor=PREDICTOR_PATH, img_path='img.png', label='dummy')
 
     for i in shape_list:
         print(i)
@@ -70,9 +53,6 @@ def main():
     exit(95)
 
 
-DATASET_DIR = 'data'
-
 if __name__ == "__main__":
-    from data_preprocessor import PreProcessor
-    PreProcessor(data_dir=DATASET_DIR).execute()
     main()
+    print('success')
