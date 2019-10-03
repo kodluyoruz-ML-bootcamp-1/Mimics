@@ -8,6 +8,25 @@ import math
 from imutils import face_utils
 
 
+def convert_landmarks_to_vectors(x_list: [], y_list: []):
+    landmarks_vectorised = []
+
+    x_mean = np.mean(x_list)
+    y_mean = np.mean(y_list)
+    x_central = [(x - x_mean) for x in x_list]
+    y_central = [(y - y_mean) for y in y_list]
+
+    for x, y, w, z in zip(x_central, y_central, x_list, y_list):
+        landmarks_vectorised.append(w)
+        landmarks_vectorised.append(z)
+        meannp = np.asarray((y_mean, x_mean))
+        coornp = np.asarray((z, w))
+        dist = np.linalg.norm(coornp - meannp)
+        landmarks_vectorised.append(dist)
+        landmarks_vectorised.append((math.atan2(y, x) * 360) / (2 * math.pi))
+    return landmarks_vectorised
+
+
 class LandMarker:
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
 
@@ -23,37 +42,21 @@ class LandMarker:
         gray_scaled_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # convert to gray-scale
         return self.clahe.apply(gray_scaled_img)
 
-    def foo(self, img_path: str):
+    def img_to_landmarks(self, img_path: str):
         img = self.load_img(img_path=img_path)
-        print(img)
-        exit(21)
 
         # detect faces in the grayscale image
         detections = self.detector(img, 1)
+        assert len(detections) == 1, 'Error: length of detections = %d, expected = 1' % len(detections)
+
         for k, d in enumerate(detections):  # For all detected face instances individually
             shape = self.predictor(img, d)  # Draw Facial Landmarks with the predictor class
             x_list = [float(shape.part(i).x) for i in range(1, 68)]
             y_list = [float(shape.part(i).y) for i in range(1, 68)]
 
+            return convert_landmarks_to_vectors(x_list, y_list)
 
-            xmean = np.mean(x_list)
-            ymean = np.mean(y_list)
-            xcentral = [(x - xmean) for x in x_list]
-            ycentral = [(y - ymean) for y in y_list]
-            landmarks_vectorised = []
-            for x, y, w, z in zip(xcentral, ycentral, x_list, y_list):
-                landmarks_vectorised.append(w)
-                landmarks_vectorised.append(z)
-                meannp = np.asarray((ymean, xmean))
-                coornp = np.asarray((z, w))
-                dist = np.linalg.norm(coornp - meannp)
-                landmarks_vectorised.append(dist)
-                landmarks_vectorised.append((math.atan2(y, x) * 360) / (2 * math.pi))
-            return landmarks_vectorised
-        # if len(detections) < 1:
-        #    data['landmarks_vestorised'] = "error"
-
-    def img_to_landmarks(self, img_path: str):
+    def img_to_landmarks_legacy(self, img_path: str):
         # load the input image, resize it, and convert it to grayscale
         image = cv2.imread(img_path)
         image = imutils.resize(image, width=500)
