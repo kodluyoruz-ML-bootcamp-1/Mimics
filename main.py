@@ -1,10 +1,8 @@
-from os import listdir
+from data_preparer import PreProcessor, DatasetBuilder
 
-from facial_landmarks import LandMarker
-from data_preprocessor import PreProcessor
-
+IMAGES_DIR = 'data/images/'
 PREDICTOR_PATH = 'shape_predictor_68_face_landmarks.dat'
-DATASET_DIR = 'data'
+CSV_DATASET = 'data/csvs/ds_original.csv'
 
 
 def shape_to_coordinates(img_shape):
@@ -12,24 +10,16 @@ def shape_to_coordinates(img_shape):
 
 
 def main():
-    # PreProcessor(data_dir=DATASET_DIR).preprocess()
+    # # Pre-process data
+    # PreProcessor(data_dir=IMAGES_DIR).preprocess()
 
-    land_marker = LandMarker(landmark_predictor_path=PREDICTOR_PATH)
-
-    imgs_w_labels = PreProcessor(data_dir=DATASET_DIR).extract_imgs_with_labels()
-    for img_w_label in imgs_w_labels:
-        landmark_points = land_marker.img_to_landmarks(img_path=img_w_label['path'])
-        instance = landmark_points + [img_w_label['label']]
-        print(instance)
-    exit(19)
+    # # Build dataset as csv
+    DatasetBuilder(data_dir=IMAGES_DIR, predictor=PREDICTOR_PATH, class_feature='emotion') \
+        .build(target_csv=CSV_DATASET, write_header=True)
 
     imgs = []
 
     shape_list = []
-    for img_path in images_to_labels.keys():
-        imgs.append(img_path)
-        landmark_points = img_to_landmarks(predictor=PREDICTOR_PATH, img_path='img.png', label='dummy')
-
     for i in shape_list:
         print(i)
 
