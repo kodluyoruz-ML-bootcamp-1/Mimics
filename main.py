@@ -1,8 +1,12 @@
+from classifier import Classifier
 from data_preparer import PreProcessor, DatasetBuilder
+from facial_landmarks import LandMarker
 
 IMAGES_DIR = 'data/images/'
 PREDICTOR_PATH = 'shape_predictor_68_face_landmarks.dat'
-CSV_DATASET = 'data/csvs/ds_original.csv'
+
+INITIAL_CSV = 'data/csvs/ds_original.csv'
+FINAL_CSV = 'data/csvs/ds_classes_equalized.csv'
 
 
 def shape_to_coordinates(img_shape):
@@ -10,12 +14,21 @@ def shape_to_coordinates(img_shape):
 
 
 def main():
-    # # Pre-process data
-    # PreProcessor(data_dir=IMAGES_DIR).preprocess()
+    land_marker = LandMarker(landmark_predictor_path=PREDICTOR_PATH)
 
-    # # Build dataset as csv
-    DatasetBuilder(data_dir=IMAGES_DIR, predictor=PREDICTOR_PATH, class_feature='emotion') \
-        .build(target_csv=CSV_DATASET, write_header=True)
+    """
+    # Pre-process data
+    PreProcessor(data_dir=IMAGES_DIR).preprocess()
+
+    # Build dataset as csv
+    dataset_builder = DatasetBuilder(data_dir=IMAGES_DIR, class_feature='emotion', land_marker=land_marker)
+    dataset_builder.build(target_csv=INITIAL_CSV, write_header=True)
+    """
+
+    rf_classifier = Classifier(csv_path=FINAL_CSV, algorithm='RandomForest', land_marker=land_marker)
+    rf_classifier.classify('img.png', 'img2.png')
+
+    exit(96)
 
     imgs = []
 

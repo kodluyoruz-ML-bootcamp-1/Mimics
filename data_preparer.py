@@ -45,18 +45,18 @@ class ImageDataset:
         self.emotion_num = emotion_num
 
     @property
-    def imgs(self) -> dict:
-        img_names = [img for img in dir_content(self.path) if img.endswith(self.img_extension)]
-        return {
-            'name': img_names,  # type: list
-            'path': [merge_paths(self.path, img_name) for img_name in img_names]  # type: list
-        }
+    def img_names(self) -> []:
+        return [img for img in dir_content(self.path) if img.endswith(self.img_extension)]
 
     @property
-    def imgs_with_labels(self) -> [dict]:
+    def img_paths(self) -> []:
+        return [merge_paths(self.path, img_name) for img_name in self.img_names]
+
+    @property
+    def img_paths_with_labels(self) -> [dict]:
         return [
-            {'path': self.imgs['path'][0], 'label': EmotionLabels.neutral.name},
-            {'path': self.imgs['path'][1], 'label': self.emotion_label}
+            {'path': self.img_paths[0], 'label': EmotionLabels.neutral.name},
+            {'path': self.img_paths[1], 'label': self.emotion_label}
         ]
 
     @property
@@ -67,17 +67,17 @@ class ImageDataset:
         return EmotionLabels.code_to_name(input_label_code=encoded_label)
 
     def regulate_names(self):
-        for count, img_path in enumerate(self.imgs['path']):
+        for count, img_path in enumerate(self.img_paths):
             formatted_cnt = str(count + 1).zfill(8)
             new_img_name = '%s_%s_%s.png' % (self.subject, self.emotion_num, formatted_cnt)
             rename(src=img_path, dst=merge_paths(self.path, new_img_name))
 
     def remove_except_first_and_last(self):
-        for pic in self.imgs['path'][1:-1]:
+        for pic in self.img_paths[1:-1]:
             remove(pic)
 
     def clear_img_paths_without_label(self, label_postfix: str):
-        for img_path in self.imgs['path']:
+        for img_path in self.img_paths:
             if not any(label_postfix in pic for pic in dir_content(img_path)):
                 rmtree(img_path)
 
@@ -104,19 +104,19 @@ class PreProcessor:
 
 
 class DatasetBuilder:
-    def __init__(self, data_dir: str, predictor: str, class_feature: str):
+    def __init__(self, data_dir: str, class_feature: str, land_marker: LandMarker):
         self.img_datasets = ImageDataset.collect_img_datasets(data_dir)
-        self.predictor_path = predictor
+        self.land_marker = land_marker
         self.header = self.create_header(class_label=class_feature)
 
     def create_header(self, class_label: str):
-        land_marker = LandMarker(landmark_predictor_path=self.predictor_path)
-        landmark_points = land_marker.img_to_landmarks(img_path=self.extract_imgs_with_labels()[0]['path'])
+        lm = self.land_marker
+        landmark_points = lm.img_to_landmarks(img_path=self.extract_imgs_with_labels()[0]['path'])
         header_list = tuple('X%d' % (i + 1) for i in range(len(landmark_points))) + (class_label,)
         return list_to_csv_line(header_list)
 
     def build(self, target_csv: str, write_header: bool):
-        land_marker = LandMarker(landmark_predictor_path=self.predictor_path)
+        lm = self.land_marker
 
         imgs_w_labels = self.extract_imgs_with_labels()
 
@@ -125,7 +125,7 @@ class DatasetBuilder:
             if write_header:
                 csv_dataset.write(self.header)
             for i, img_w_label in enumerate(imgs_w_labels):
-                landmark_points = land_marker.img_to_landmarks(img_path=img_w_label['path'])
+                landmark_points = lm.img_to_landmarks(img_path=img_w_label['path'])
                 instance = landmark_points + (img_w_label['label'],)
                 csv_dataset.write(list_to_csv_line(instance))
                 print('[LOG]', 'Written Instance Progress: %d/%d' % ((i + 1), len(imgs_w_labels)))
@@ -134,5 +134,5 @@ class DatasetBuilder:
     def extract_imgs_with_labels(self) -> [dict]:
         all_imgs_with_labels = []
         for img_ds in self.img_datasets:
-            all_imgs_with_labels.extend(img_ds.imgs_with_labels)
+            all_imgs_with_labels.extend(img_ds.img_paths_with_labels)
         return all_imgs_with_labels
