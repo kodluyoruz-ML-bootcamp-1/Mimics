@@ -1,7 +1,7 @@
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
 import numpy as np
-from facial_landmarks import LandMarker
+from data_land_marker import LandMarker
 
 
 class Dataset:

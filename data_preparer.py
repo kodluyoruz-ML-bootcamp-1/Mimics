@@ -1,7 +1,7 @@
 import enum
 from os import listdir, rename, remove
 from shutil import rmtree
-from facial_landmarks import LandMarker
+from data_land_marker import LandMarker
 
 FILE_SEPARATOR = '/'  # For Linux and MacOS
 LABEL_POSTFIX = '_emotion.txt'
