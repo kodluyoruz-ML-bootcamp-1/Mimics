@@ -42,7 +42,7 @@ class LandMarker:
         gray_scaled_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # convert to gray-scale
         return self.clahe.apply(gray_scaled_img)
 
-    def img_to_landmarks(self, img_path: str):
+    def img_to_landmarks(self, img_path: str) -> tuple:
         img = self.load_img(img_path=img_path)
 
         # detect faces in the grayscale image
@@ -54,7 +54,7 @@ class LandMarker:
             x_list = [float(shape.part(i).x) for i in range(1, 68)]
             y_list = [float(shape.part(i).y) for i in range(1, 68)]
 
-            return convert_landmarks_to_vectors(x_list, y_list)
+            return tuple(convert_landmarks_to_vectors(x_list, y_list))
 
     def img_to_landmarks_legacy(self, img_path: str):
         # load the input image, resize it, and convert it to grayscale
