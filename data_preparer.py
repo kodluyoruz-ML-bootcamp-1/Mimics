@@ -1,7 +1,6 @@
 import enum
 from os import listdir, rename, remove
 from shutil import rmtree
-from data_land_marker import LandMarker
 
 FILE_SEPARATOR = '/'  # For Linux and MacOS
 LABEL_POSTFIX = '_emotion.txt'
@@ -45,18 +44,15 @@ class ImageDataset:
         self.emotion_num = emotion_num
 
     @property
-    def img_names(self) -> []:
-        return [img for img in dir_content(self.path) if img.endswith(self.img_extension)]
-
-    @property
     def img_paths(self) -> []:
-        return [merge_paths(self.path, img_name) for img_name in self.img_names]
+        img_names = [img for img in dir_content(self.path) if img.endswith(self.img_extension)]
+        return [merge_paths(self.path, img_name) for img_name in img_names]
 
     @property
     def img_paths_with_labels(self) -> [dict]:
         return [
             {'path': self.img_paths[0], 'label': EmotionLabels.neutral.name},
-            {'path': self.img_paths[1], 'label': self.emotion_label}
+            {'path': self.img_paths[-1], 'label': self.emotion_label}
         ]
 
     @property
@@ -107,21 +103,21 @@ class DatasetBuilder:
     def __init__(self, data_dir: str, class_feature: str, land_marker: LandMarker):
         self.img_datasets = ImageDataset.collect_img_datasets(data_dir)
         self.land_marker = land_marker
-        self.header = self.create_header(class_label=class_feature)
+        self.header = self.create_header(class_feature=class_feature)
 
-    def create_header(self, class_label: str):
+    def create_header(self, class_feature: str):
         lm = self.land_marker
         landmark_points = lm.img_to_landmarks(img_path=self.extract_imgs_with_labels()[0]['path'])
-        header_list = tuple('X%d' % (i + 1) for i in range(len(landmark_points))) + (class_label,)
+        header_list = tuple('X%d' % (i + 1) for i in range(len(landmark_points))) + (class_feature,)
         return list_to_csv_line(header_list)
 
-    def build(self, target_csv: str, write_header: bool):
+    def build(self, target: str, write_header: bool = True):
         lm = self.land_marker
 
         imgs_w_labels = self.extract_imgs_with_labels()
 
         print('[LOG]', 'Dataset is building..')
-        with open(file=target_csv, mode='w') as csv_dataset:
+        with open(file=target, mode='w') as csv_dataset:
             if write_header:
                 csv_dataset.write(self.header)
             for i, img_w_label in enumerate(imgs_w_labels):
@@ -129,7 +125,7 @@ class DatasetBuilder:
                 instance = landmark_points + (img_w_label['label'],)
                 csv_dataset.write(list_to_csv_line(instance))
                 print('[LOG]', 'Written Instance Progress: %d/%d' % ((i + 1), len(imgs_w_labels)))
-        print('\nAll instances are successfully written to file: \"%s\"' % target_csv)
+        print('\nAll instances are successfully written to file: \"%s\"' % target)
 
     def extract_imgs_with_labels(self) -> [dict]:
         all_imgs_with_labels = []

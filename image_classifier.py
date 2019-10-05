@@ -1,6 +1,8 @@
-from sklearn.ensemble import RandomForestClassifier
-import pandas as pd
 import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+
 from data_land_marker import LandMarker
 
 
@@ -30,27 +32,35 @@ class Dataset:
 class Classifier:
     def __init__(self, csv_path: str, algorithm: str, land_marker: LandMarker):
         ds = Dataset.from_csv(file_path=csv_path)
-        self.land_marker = land_marker
+        self.landmarker = land_marker
         self.dataset = ds
 
         if algorithm == 'RandomForest':
             self.classifier = RandomForestClassifier(n_jobs=2, random_state=0, n_estimators=100)
             self.classifier.fit(ds.without_labels, ds.factorized_labels)
         elif algorithm == 'SVM':
-            #
-            ...
-            #
-            pass
+            self.classifier = SVC(kernel='linear')
+            self.classifier.fit(ds.without_labels, ds.factorized_labels)
         else:
             raise ValueError('%s algorithm is not defined' % algorithm)
 
         # classifier.evaluate_with_random_forest(split_ratio=0.75)
 
-    def classify(self, *img_paths: str) -> []:
-        all_land_marks = [self.land_marker.img_to_landmarks(img_path=img) for img in img_paths]
-        predicted_class_idx = self.classifier.predict(X=all_land_marks)
+    def classify(self, img: np.ndarray) -> str:
+        all_land_marks = self.landmarker.img_to_landmarks(img)
+        if all_land_marks is None:
+            return 'no face'
+        predicted_class_idx = self.classifier.predict(X=[all_land_marks])
         predicted_classes = self.dataset.unique_labels[predicted_class_idx]
-        return list(predicted_classes)
+        return predicted_classes[0]
+
+    def extract_face_rectangle(self, img: np.ndarray) -> tuple:
+        return self.landmarker.img_to_rectangle(img=img)
+
+    def extract_landmark_points(self, img: np.ndarray) -> np.ndarray:
+        return self.landmarker.img_to_landmark_points(img)
+
+
 
     def evaluate_with_random_forest(self, split_ratio: float, n_jobs: int = 2, random_state: int = 0):
         a_classifier = RandomForestClassifier(n_jobs=n_jobs, random_state=random_state, n_estimators=100)
